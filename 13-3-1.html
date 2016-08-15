@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<style>
+	*{margin:0;padding: 0}
+    canvas{border: 2px solid #000;margin:auto;}
+	</style>
+  <script type="text/javascript" src="js/segement.js"></script>
+  <script type="text/javascript" src="js/utils.js"></script> 
+	<script type="text/javascript">
+  window.onload=function(){
+    var can=document.getElementById("mycanvas");
+    var ctx=can.getContext("2d");
+    var segement0=new Segement(100,20);
+    var segement1=new Segement(100,20); 
+    var segement2=new Segement(100,20); 
+    var segement3=new Segement(100,20); 
+    var cycle=0;
+
+    segement0.x=200;
+    segement2.x=200;
+    segement0.y=100;
+    segement2.y=100;
+
+    function walk(segA,segB,cyc){
+      var angle=(Math.sin(cyc)*45+90)*Math.PI/180;
+      var angle1=(Math.sin(cyc)*45+45)*Math.PI/180;
+      segA.rotation=angle;
+      segB.rotation=angle+angle1;
+      segB.x=segA.getPin().x;
+      segB.y=segA.getPin().y;
+    }
+ 
+
+    (function drawFrame(){
+      window.requestAnimationFrame(drawFrame,can);
+      ctx.clearRect(0,0,can.width,can.height);     
+
+      cycle+=0.02;
+      walk(segement0,segement1,cycle);
+      walk(segement2,segement3,cycle+Math.PI);
+
+      segement0.draw(ctx);
+      segement1.draw(ctx); 
+      segement2.draw(ctx); 
+      segement3.draw(ctx); 
+    }()) 
+
+  } 
+	</script>
+</head>
+<body>
+<canvas id="mycanvas" width="400" height="400" ></canvas>
+</body>
+</html>

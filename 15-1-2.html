@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<style>
+*{margin:0;padding: 0}
+canvas{border: 2px solid #000;margin:auto;}
+</style>
+<script type="text/javascript" src="js/balls.js"></script> 
+<script type="text/javascript" src="js/utils.js"></script>  
+<script type="text/javascript">
+window.onload=function(){
+		var can=document.getElementById("mycanvas");
+		var ctx=can.getContext("2d");  
+		var mouse=utils.CaptureMouse(can);
+		var ball=new Ball(40),
+		xpos=0,
+		ypos=0,
+		zpos=0,
+		fl=250,
+		vpX=can.width/2,
+		vpY=can.height/2;  
+
+		window.addEventListener("keydown", function(event){
+			if(event.keyCode===38){
+				zpos+=5; 
+			}else if(event.keyCode===40){
+				zpos-=5; 
+			}
+		},false);
+		 
+		(function drawFrame(){
+		  window.requestAnimationFrame(drawFrame,can);
+		  ctx.clearRect(0,0,can.width,can.height);  
+
+		  if(zpos>-fl){
+		  	  var scale=fl/(fl+zpos); 
+			  xpos=mouse.x-vpX;
+			  ypos=mouse.y-vpY;  
+			  ball.scaleX=ball.scaleY=scale;
+			  ball.x=vpX+xpos*scale;
+			  ball.y=vpY+ypos*scale;
+			  ball.visible=true;
+		  }else{
+		  	  ball.visible=false; 
+		  }
+		  
+
+
+		  if(ball.visible){
+		  	ball.draw(ctx);
+		  }
+		  
+		}()) 	
+	}
+</script>
+</head>
+<body>
+<canvas id="mycanvas" width="400" height="400" ></canvas>
+</body>
+</html>

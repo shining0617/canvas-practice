@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script>
+        window.onload=function(){
+            var utils={};
+            utils.CaptrueMouse=function(element){
+                var mouse={x:0,y:0};
+                element.addEventListener('mousemove',function(e){
+                    var x,y;
+                    if(e.pageX|| e.pageY){
+                        x= e.pageX;
+                        y= e.pageY;
+                    }else{
+                        x= e.clientX+document.body.scrollLeft+document.documentElement.scrollLeft;
+                        y=e.clientY+document.body.scrollTop+document.documentElement.scrollTop;
+                    }
+                    x-=element.offsetLeft;
+                    y-=element.offsetTop;
+                    mouse.x=x;
+                    mouse.y=y;
+                },false);
+                return mouse;
+            }
+            function Ball(radius,color){
+                this.x=0;
+                this.y=0;
+                if(radius===undefined){radius=40}
+                this.radius=radius;
+                if(color===undefined){color="#ff0000"}
+                this.color=color;
+                this.vx=0;
+                this.vy=0;
+            }
+            Ball.prototype.draw=function(context){
+                context.save();
+                context.translate(this.x,this.y);
+                context.fillStyle=this.color;
+                context.lineWidth=2;
+                context.beginPath();
+                context.arc(0,0,this.radius,0,Math.PI*2,true);
+                context.closePath();
+                context.fill();
+                context.stroke();
+                context.restore();
+            }
+
+            var canvas=document.getElementById("mycanvas");
+            var context=canvas.getContext("2d");
+            var mouse=utils.CaptrueMouse(canvas);
+//            var ball0=new Ball(20);
+//            var ball1=new Ball(20,'#00ff00');
+//            var ball2=new Ball(20,'#0000ff');
+            var spring=0.03;
+            var gravity=2;
+            var friction=0.9;
+            var balls=[];
+            var numball=5;
+            while(numball--){
+                balls.push(new Ball(20));
+            }
+
+            function move(ball,targetX,targetY){
+                ball.vx+=(targetX-ball.x)*spring;
+                ball.vy+=(targetY-ball.y)*spring;
+                ball.vy+=gravity;
+                ball.vy*=friction;
+                ball.vx*=friction;
+                ball.x+=ball.vx;
+                ball.y+=ball.vy;
+            }
+            function drawanimationball(ballB,i){
+                if(i===0){
+                    move(ballB,mouse.x,mouse.y);
+                    context.moveTo(mouse.x,mouse.y);
+                }else{
+                    var ballA=balls[i-1];
+                    move(ballB,ballA.x,ballA.y);
+                    context.moveTo(ballA.x,ballA.y);
+                }
+                context.lineTo(ballB.x,ballB.y);
+                context.stroke();
+                ballB.draw(context);
+
+            }
+
+            (function drawFrame(){
+                window.requestAnimationFrame(drawFrame,canvas);
+                context.clearRect(0,0,canvas.width,canvas.height);
+
+//                move(ball0,mouse.x,mouse.y);
+//                move(ball1,ball0.x,ball0.y);
+//                move(ball2,ball1.x,ball1.y);
+//
+//                context.beginPath();
+//                context.moveTo(mouse.x,mouse.y);
+//                context.lineTo(ball0.x,ball0.y);
+//                context.lineTo(ball1.x,ball1.y);
+//                context.lineTo(ball2.x,ball2.y);
+//                context.stroke();
+//                context.closePath();
+//
+//                ball0.draw(context);
+//                ball1.draw(context);
+//                ball2.draw(context);
+                balls.forEach(drawanimationball);
+            }())
+        }
+    </script>
+</head>
+<body>
+<canvas width="600" height="600" id="mycanvas" style="border:2px solid #000"></canvas>
+</body>
+</html>

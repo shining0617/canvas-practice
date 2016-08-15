@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script>
+        window.onload=function(){
+            var utils=[];
+            utils.CaptrueMouse=function(element){
+                var mouse={x:0,y:0};
+                element.addEventListener('mousemove',function(e){
+                    var x,y;
+                    if(e.pageX|| e.pageY){
+                        x= e.pageX;
+                        y= e.pageY;
+                    }else{
+                        x= e.clientX+document.body.offsetLeft+document.documentElement.offsetLeft;
+                        y= e.clientY+document.body.offsetTop+document.documentElement.offsetTop;
+                    }
+                    x-=element.offsetLeft;
+                    y-=element.offsetTop;
+                    mouse.x=x;
+                    mouse.y=y;
+                },false);
+                return mouse;
+            }
+            function Ball(radius,color){
+                this.x=0;
+                this.y=0;
+                if(radius===undefined){radius=40}
+                this.radius=radius;
+                if(color===undefined){color="#ff0000"}
+                this.color=color;
+                this.scale=1;
+            }
+            Ball.prototype.draw=function(context){
+                context.save();
+                context.fillStyle=this.color;
+                context.translate(this.x,this.y);
+                context.beginPath();
+                context.arc(0,0,this.radius,0,Math.PI*2,true);
+                context.closePath();
+                context.fill();
+                context.stroke();
+                context.restore();
+            }
+            var can=document.getElementById("mycanvas");
+            var cxt=can.getContext("2d");
+            var mouse=new utils.CaptrueMouse(can);
+            var ball=new Ball();
+            var spring=0.03;
+            var springLength=100;
+            var friction=0.9;
+            var vx= 0,vy=0;
+            (function drawFrame(){
+                window.requestAnimationFrame(drawFrame,can);
+                cxt.clearRect(0,0,can.width,can.height);
+                var dx=ball.x-mouse.x;
+                var dy=ball.y-mouse.y;
+                console.log(mouse.x,mouse.y);
+                var angle=Math.atan2(dy,dx);
+                var targetx=mouse.x+Math.cos(angle)*springLength;
+                var targety=mouse.y+Math.sin(angle)*springLength;
+                vx+=(targetx-ball.x)*spring;
+                vy+=(targety-ball.y)*spring;
+                vx*=friction;
+                vy*=friction;
+                ball.x+=vx;
+                ball.y+=vy;
+                cxt.beginPath();
+                cxt.moveTo(mouse.x,mouse.y);
+                cxt.lineTo(ball.x,ball.y);
+                cxt.closePath();
+                cxt.stroke();
+                ball.draw(cxt);
+            }())
+        }
+    </script>
+</head>
+<body>
+<canvas id="mycanvas" width="600" height="600" style="border: 2px solid #000"></canvas>
+</body>
+</html>

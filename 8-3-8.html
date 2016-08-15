@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script>
+        window.onload=function(){
+            var utils=[];
+            utils.CaptrueMouse=function(element){
+                var mouse={x:0,y:0};
+                element.addEventListener('mousemove',function(e){
+                    var x,y;
+                    if(e.pageX|| e.pageY){
+                        x= e.pageX;
+                        y= e.pageY;
+                    }else{
+                        x= e.clientX+document.body.offsetLeft+document.documentElement.offsetLeft;
+                        y= e.clientY+document.body.offsetTop+document.documentElement.offsetTop;
+                    }
+                    x-=element.offsetLeft;
+                    y-=element.offsetTop;
+                    mouse.x=x;
+                    mouse.y=y;
+                },false);
+                return mouse;
+            }
+            utils.ContainPoint=function(rect,x,y){
+                return !(x>rect.x+rect.width||x<rect.x||y<rect.y||y>rect.y+rect.height);
+            }
+            function Ball(radius,color){
+                this.x=0;
+                this.y=0;
+                if(radius===undefined){radius=40}
+                this.radius=radius;
+                if(color===undefined){color="#ff0000"}
+                this.color=color;
+                this.vx=0;
+                this.vy=0;
+            }
+            Ball.prototype.draw=function(context){
+                context.save();
+                context.translate(this.x,this.y);
+                context.fillStyle=this.color;
+                context.beginPath();
+                context.arc(0,0,this.radius,0,Math.PI*2,true);
+                context.closePath();
+                context.fill();
+                context.stroke();
+                context.restore();
+            }
+            Ball.prototype.getBounds=function(){
+                return {
+                    x:this.x-this.radius,
+                    y:this.y-this.radius,
+                    width:this.radius*2,
+                    height:this.radius*2
+                }
+            }
+            var can=document.getElementById("mycanvas");
+            var cxt=can.getContext("2d");
+            var mouse=new utils.CaptrueMouse(can);
+            var ball0=new Ball(30);
+            var ball1=new Ball(40,"#0000ff");
+            var ball2=new Ball(20);
+            var spring=0.05;
+            var friction=0.9;
+            var springLength=100;
+            var ball0_dragging=false;
+            var ball1_dragging=false;
+            var ball2_dragging=false;
+
+            ball0.x=Math.random()*can.width;
+            ball0.y=Math.random()*can.height;
+            ball1.x=Math.random()*can.width;
+            ball1.y=Math.random()*can.height;
+            ball2.x=Math.random()*can.width;
+            ball2.y=Math.random()*can.height;
+
+            can.addEventListener('mousedown',function(){
+                if(utils.ContainPoint(ball0.getBounds(),mouse.x,mouse.y)){
+                    ball0_dragging=true;
+
+                }
+                if(utils.ContainPoint(ball1.getBounds(),mouse.x,mouse.y)){
+                    ball1_dragging=true;
+                }
+                if(utils.ContainPoint(ball2.getBounds(),mouse.x,mouse.y)){
+                    ball2_dragging=true;
+                }
+            },false);
+            can.addEventListener('mouseup',function(){
+                if(ball0_dragging||ball1_dragging||ball2_dragging){
+                    ball0_dragging=false;
+                    ball1_dragging=false;
+                    ball2_dragging=false;
+                }
+            },false);
+
+            can.addEventListener('mousemove',function(){
+                if(ball0_dragging){
+                    ball0.x=mouse.x;
+                    ball0.y=mouse.y;
+                }
+                if(ball1_dragging){
+                    ball1.x=mouse.x;
+                    ball1.y=mouse.y;
+                }
+                if(ball2_dragging){
+                    ball2.x=mouse.x;
+                    ball2.y=mouse.y;
+                }
+            },false);
+            function springTo(ballA,ballB){
+                var dx=ballA.x-ballB.x;
+                var dy=ballA.y-ballB.y;
+                var angle=Math.atan2(dy,dx);
+                var targetx=ballB.x+Math.cos(angle)*springLength;
+                var targety=ballB.y+Math.sin(angle)*springLength;
+
+                ballA.vx+=(targetx-ballA.x)*spring;
+                ballA.vy+=(targety-ballA.y)*spring;
+                ballA.vx*=friction;
+                ballA.vy*=friction;
+                ballA.x+=ballA.vx;
+                ballA.y+=ballA.vy;
+            }
+
+            (function drawFrame(){
+                window.requestAnimationFrame(drawFrame,can);
+                cxt.clearRect(0,0,can.width,can.height);
+                if(!ball0_dragging){
+                    springTo(ball0,ball1);
+                    springTo(ball0,ball2);
+                }
+                if(!ball1_dragging){
+                    springTo(ball1,ball0);
+                    springTo(ball1,ball2);
+                }
+                if(!ball2_dragging){
+                    springTo(ball2,ball0);
+                    springTo(ball2,ball1);
+                }
+                cxt.beginPath();
+                cxt.moveTo(ball0.x,ball0.y);
+                cxt.lineTo(ball1.x,ball1.y);
+                cxt.lineTo(ball2.x,ball2.y);
+                cxt.lineTo(ball0.x,ball0.y);
+                cxt.closePath();
+                cxt.stroke();
+                ball0.draw(cxt);
+                ball1.draw(cxt);
+                ball2.draw(cxt);
+            }())
+        }
+    </script>
+</head>
+<body>
+<canvas id="mycanvas" width="600" height="600" style="border: 2px solid #000"></canvas>
+</body>
+</html>

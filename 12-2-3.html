@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<style>
+	*{margin:0;padding: 0}
+	</style>
+	<script type="text/javascript">
+		window.onload=function(){
+			function Ball(radius, color) {
+                this.x = 0;
+                this.y = 0;
+                this.vx = 0;
+                this.vy = 0;
+                if (radius === undefined) {
+                    radius = 20
+                }
+                this.radius = radius;
+                if (color === undefined) {
+                    color = "#ff0000"
+                }
+                this.color = color;
+                this.mass=1;
+            }
+
+            Ball.prototype.draw = function (context) {
+                context.save();
+                context.translate(this.x, this.y);
+                context.lineWidth = 2;
+                context.strokeStyle = "#000";
+                context.fillStyle = this.color;
+                context.beginPath();
+                context.arc(0, 0, this.radius, 0, Math.PI * 2, true);
+                context.closePath();
+                context.fill();
+                context.stroke();
+                context.restore();
+            }
+            var can = document.getElementById("mycanvas");
+            var cxt = can.getContext("2d");
+            var particles=[];
+            var numParticles=2;
+            var sun=new Ball(100,"#ffff00");
+            var planet=new Ball(10,"#00ff00");
+
+            sun.x=can.width/2-200;
+            sun.y=can.height/2;
+            sun.mass=10000;
+            particles.push(sun);
+
+            planet.x=can.width/2-100;
+            planet.y=can.height/2-100;
+            planet.mass=1;
+            planet.vy=7;
+            particles.push(planet);
+
+             function move(partA,i){
+                partA.x+=partA.vx;
+                partA.y+=partA.vy;
+                for(var partB, j=i+1;j<numParticles;j++){
+                    partB=particles[j];
+                    gravitate(partA,partB);
+                    checkcollision(partA,partB);
+                }
+
+            }
+            function rotate(x,y,sin,cos,reverse){
+                return{
+                    x:reverse?(x*cos+y*sin):(x*cos-y*sin),
+                    y:reverse?(y*cos-x*sin):(y*cos+x*sin)
+                }
+            }
+            function checkcollision(ballA,ballB){
+                var dx=ballB.x-ballA.x;
+                var dy=ballB.y-ballA.y;
+                var dist=Math.sqrt(dx*dx+dy*dy);
+                var angle=Math.atan2(dy,dx);
+                var sin=Math.sin(angle);
+                var cos=Math.cos(angle);
+                if(dist<ballA.radius+ballB.radius){
+                    var pos0={x:0,y:0};
+                    var pos1=rotate(dx,dy,sin,cos,true);
+                    var vel0=rotate(ballA.vx,ballA.vy,sin,cos,true);
+                    var vel1=rotate(ballB.vx,ballB.vy,sin,cos,true);
+                    var vTotal=vel0.x-vel1.x;
+                    vel0.x=((ballA.mass-ballB.mass)*vel0.x+2*ballB.mass*vel1.x)/(ballA.mass+ballB.mass);
+                    vel1.x=vTotal+vel0.x;
+
+                    var absv=Math.abs(vel0.x)+Math.abs(vel1.x);
+                    var overlap=(ballA.radius+ballB.radius)-Math.abs(pos0.x-pos1.x);
+                    pos0.x+=vel0.x/absv*overlap;
+                    pos1.x+=vel1.x/absv*overlap;
+
+                    var vel0F=rotate(vel0.x,vel0.y,sin,cos,false);
+                    var vel1F=rotate(vel1.x,vel1.y,sin,cos,false);
+                    var pos0F=rotate(pos0.x,pos0.y,sin,cos,false);
+                    var  pos1F=rotate(pos1.x,pos1.y,sin,cos,false);
+
+                    ballA.x=ballA.x+pos0F.x;
+                    ballA.y=ballA.y+pos0F.y;
+                    ballB.x=ballA.x+pos1F.x;
+                    ballB.y=ballA.y+pos1F.y;
+
+                    ballA.vx=vel0F.x;ss
+                    ballA.vy=vel0F.y;
+                    ballB.vx=vel1F.x;
+                    ballB.vy=vel1F.y;
+                }
+            }
+            function gravitate(partA,partB){
+                var dx=partB.x-partA.x;
+                var dy=partB.y-partA.y;
+                var distQ=dx*dx+dy*dy;
+                var dist=Math.sqrt(distQ);
+
+                /*总的万有引力*/
+                var force=partA.mass*partB.mass/distQ;
+                /*总的万有引力对两个粒子的在x轴和y轴上总加速度的影响*/
+                var ax=force*dx/dist;
+                var ay=force*dy/dist;
+                partA.vx+=ax/partA.mass;
+                partA.vy+=ay/partA.mass;
+                partB.vx+=ax/partB.mass;
+                partB.vy+=ay/partB.mass;
+
+            }
+            function drawBall(ball){
+                ball.draw(cxt);
+            }
+            (function drawFrame(){
+            	window.requestAnimationFrame(drawFrame,can);
+            	cxt.clearRect(0,0,can.width,can.height);
+ 
+                particles.forEach(drawBall);
+                particles.forEach(move);
+            }()) 
+		}
+	</script>
+</head>
+<body>
+<canvas id="mycanvas" width="600" height="600" style="border: 2px solid #000;margin:auto">
+	
+</canvas>
+</body>
+</html>

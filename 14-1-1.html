@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<style>
+*{margin:0;padding: 0}
+canvas{border: 2px solid #000;margin:auto;}
+</style>
+<script type="text/javascript" src="js/segement.js"></script>
+<script type="text/javascript" src="js/utils.js"></script> 
+<script type="text/javascript" src="js/slider.js"></script> 
+<script type="text/javascript">
+window.onload=function(){
+		var can=document.getElementById("mycanvas");
+		var ctx=can.getContext("2d"); 
+		var segement0=new Segement(100,30);
+		var segement1=new Segement(100,30,"#ff0000");
+		var mouse=utils.CaptureMouse(can);
+		var cycle=0;
+
+		segement0.x=can.width/2;
+		segement0.y=can.height/2;
+ 
+		function drag(seg,xpos,ypos){
+			var dx=xpos-seg.x;
+			var dy=ypos-seg.y;
+			seg.rotation=Math.atan2(dy,dx);
+			var w=seg.getPin().x-seg.x;
+			var h=seg.getPin().y-seg.y;
+			seg.x=xpos-w;
+			seg.y=ypos-h;
+		}
+		 
+		(function drawFrame(){
+		  window.requestAnimationFrame(drawFrame,can);
+		  ctx.clearRect(0,0,can.width,can.height);  
+		  // cycle+=2;
+ 		 //  var angle=cycle*Math.PI/180;
+		  // segement0.rotation=angle;
+		   
+		  drag(segement0,mouse.x,mouse.y);
+		  segement0.draw(ctx);
+
+		  drag(segement1,segement0.x,segement0.y);
+		  segement1.draw(ctx);
+
+		}()) 	
+	}
+</script>
+</head>
+<body>
+<canvas id="mycanvas" width="800" height="500" ></canvas>
+</body>
+</html>

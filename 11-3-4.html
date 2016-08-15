@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<style>
+	*{margin:0;padding: 0}
+	</style>
+	<script type="text/javascript">
+		window.onload=function(){
+			function Ball(radius, color) {
+                this.x = 0;
+                this.y = 0;
+                this.vx = 0;
+                this.vy = 0;
+                if (radius === undefined) {
+                    radius = 20
+                }
+                this.radius = radius;
+                if (color === undefined) {
+                    color = "#ff0000"
+                }
+                this.color = color;
+                this.mass=1;
+            }
+
+            Ball.prototype.draw = function (context) {
+                context.save();
+                context.translate(this.x, this.y);
+                context.lineWidth = 2;
+                context.strokeStyle = "#000";
+                context.fillStyle = this.color;
+                context.beginPath();
+                context.arc(0, 0, this.radius, 0, Math.PI * 2, true);
+                context.closePath();
+                context.fill();
+                context.stroke();
+                context.restore();
+            }
+            var can = document.getElementById("mycanvas");
+            var cxt = can.getContext("2d"); 
+            var bounce=-0.7;
+            var ballNum=8;
+            var balls=[];
+            for(var ball,i=0;i<ballNum;i++){
+                ball=new Ball();
+                ball.radius=Math.random()*i+20;
+                ball.mass=Math.random()*i+10;
+                ball.x=Math.random()*can.width;
+                ball.y=Math.random()*can.height;
+                ball.vx=Math.random()*i+10;
+                ball.vy=Math.random()*i+10;
+                balls.push(ball);
+            }
+            function drawBall(ball){
+                ball.draw(cxt);
+            }
+            function checkWalls(ball){
+                if(ball.x>can.width-ball.radius){
+                    ball.vx*=bounce;
+                    ball.x=can.width-ball.radius;
+                    ball.x+=ball.vx;
+                }else if(ball.x<ball.radius){
+                    ball.vx*=bounce;
+                    ball.x=ball.radius;
+                    ball.x+=ball.vx;
+                } 
+                if(ball.y>can.height-ball.radius){
+                    ball.vy*=bounce;
+                    ball.y=can.height-ball.radius;
+                    ball.y+=ball.vy;
+                }else if(ball.y<ball.radius){
+                    ball.vy*=bounce;
+                    ball.y=ball.radius;
+                    ball.y+=ball.vy;
+                } 
+            }
+            function move(ball){
+                ball.x+=ball.vx;
+                ball.y+=ball.vy;
+                checkWalls(ball);
+            }
+
+            /*传入相对x轴y轴上的距离或速度得到旋转后的x轴y轴上的距离或者速度*/
+            function rotate(x,y,sin,cos,reverse){ 
+                return {
+                    x:reverse?(x*cos+y*sin):(x*cos-y*sin),
+                    y:reverse?(y*cos-x*sin):(y*cos+x*sin)
+                }
+            }
+
+            function checkCollision(ballA,ballB){
+                var dx=ballB.x-ballA.x;
+                var dy=ballB.y-ballA.y;
+                var dist=Math.sqrt(dx*dx+dy*dy);
+               
+
+                if(dist<ballA.radius+ballB.radius){
+                    var angle=Math.atan2(dy,dx);
+                    var sin=Math.sin(angle);
+                    var cos=Math.cos(angle);
+                    /*旋转后的相对位置*/
+                    var pos0={x:0,y:0};
+                    var pos1=rotate(dx,dy,sin,cos,true);
+                    /*旋转后的速度*/
+                    var vel0=rotate(ballA.vx,ballA.vy,sin,cos,true);
+                    var vel1=rotate(ballB.vx,ballB.vy,sin,cos,true);
+                    /*检测碰撞得到碰撞后的速度*/
+                    var vTotal=vel0.x-vel1.x;
+                    vel0.x=((ballA.mass-ballB.mass)*vel0.x+2*ballB.mass*vel1.x)/(ballA.mass+ballB.mass);
+                    vel1.x=vTotal+vel0.x;
+
+                    /*碰撞后的相对位置*/
+                    var absv=Math.abs(vel0.x)+Math.abs(vel1.x);
+                    var overlap=(ballA.radius+ballB.radius)-Math.abs(pos0.x-pos1.x);
+
+                    pos0.x+=vel0.x/absv*overlap;
+                    pos1.x+=vel1.x/absv*overlap;
+
+                    /*旋转碰撞后的速度*/
+                    var vel0F=rotate(vel0.x,vel0.y,sin,cos,false);
+                    var vel1F=rotate(vel1.x,vel1.y,sin,cos,false);
+
+                    /*旋转碰撞后的相对位置*/
+                    var pos0F=rotate(pos0.x,pos0.y,sin,cos,false);
+                    var pos1F=rotate(pos1.x,pos1.y,sin,cos,false);
+
+                    /*得到最后的位置*/
+                    ballA.x=ballA.x+pos0F.x;
+                    ballA.y=ballA.y+pos0F.y;
+                    ballB.x=ballA.x+pos1F.x;
+                    ballB.y=ballA.y+pos1F.y;
+
+                    /*得到最后的速度*/
+                    ballA.vx=vel0F.x;
+                    ballA.vy=vel0F.y;
+                    ballB.vx=vel1F.x;
+                    ballB.vy=vel1F.y;
+                }
+                
+            }
+            
+
+            (function drawFrame(){
+            	window.requestAnimationFrame(drawFrame,can);
+            	cxt.clearRect(0,0,can.width,can.height); 
+             	 
+                balls.forEach(drawBall);
+                balls.forEach(move);
+
+                for(var i=0;i<ballNum-1;i++){
+                    var ballA=balls[i];
+                    for(var j=i+1;j<ballNum;j++){
+                        var ballB=balls[j];
+                        checkCollision(ballA,ballB);
+                    }
+                }
+
+            }()) 
+		}
+	</script>
+</head>
+<body>
+<canvas id="mycanvas" width="600" height="600" style="border: 2px solid #000;margin:auto">
+	
+</canvas>
+</body>
+</html>

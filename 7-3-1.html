@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script>
+        window.onload=function(){
+            var utils={};
+            utils.CaptrueMouse=function(element){
+                var mouse={x:0,y:0};
+                element.addEventListener('mousemove',function(e){
+                    var x,y;
+                    if(e.pageX|| e.pageY){
+                        x= e.pageX;
+                        y= e.pageY;
+                    }else{
+                        x= e.clientX+document.body.scrollLeft+document.documentElement.scrollLeft;
+                        y=e.clientY+document.body.scrollTop+document.documentElement.scrollTop;
+                    }
+                    x-=element.offsetLeft;
+                    y-=element.offsetTop;
+                    mouse.x=x;
+                    mouse.y=y;
+                },false);
+                return mouse;
+            }
+            utils.ContainPoint=function(rect,x,y){
+                return !(x>rect.x+rect.width||x<rect.x||y>rect.y+rect.height||y<rect.y)
+            }
+
+            function Ball(radius,color){
+                this.x=0;
+                this.y=0;
+                if(radius===undefined){radius=40}
+                this.radius=radius;
+                if(color===undefined){color="#ff0000"}
+                this.color=color;
+                this.vx=0;
+                this.vy=0;
+            }
+            Ball.prototype.draw=function(context){
+                context.save();
+                context.translate(this.x,this.y);
+                context.fillStyle=this.color;
+                context.lineWidth=2;
+                context.beginPath();
+                context.arc(0,0,this.radius,0,Math.PI*2,true);
+                context.closePath();
+                context.fill();
+                context.stroke();
+                context.restore();
+            }
+            Ball.prototype.getBounds=function(){
+                return {
+                        x:this.x-this.radius,
+                        y:this.y-this.radius,
+                        w:this.radius*2,
+                        h:this.radius*2
+                }
+            }
+
+            var canvas=document.getElementById("mycanvas");
+            var context=canvas.getContext("2d");
+            var mouse=utils.CaptrueMouse(canvas);
+            var ball=new Ball();
+            var vx=Math.random()*10-5;
+            var vy=-10;
+            var bounce=-0.7;
+            var gravity=2;
+            var friction=0.95;
+            var isMouseDown=false;
+            var oldX,oldY;
+            ball.x=canvas.width/2;
+            ball.y=canvas.height/2;
+
+            canvas.addEventListener('mousedown',function(){
+                if(utils.ContainPoint(ball.getBounds(),mouse.x,mouse.y)){
+                    isMouseDown=true;
+                    oldX=ball.x;
+                    oldY=ball.y;
+                    canvas.addEventListener('mouseup',Mouseup,false);
+                    canvas.addEventListener('mousemove',Mousemove,false);
+                }
+            },false)
+            function Mouseup(){
+                isMouseDown=false;
+                canvas.removeEventListener('mouseup',Mouseup,false);
+                canvas.removeEventListener('mousemove',Mousemove,false);
+            }
+            function Mousemove(){
+                ball.x=mouse.x;
+                ball.y=mouse.y;
+            }
+            function trackVelocity(){
+                vx=ball.x-oldX;
+                vy=ball.y-oldY;
+                oldX=ball.x;
+                oldY=ball.y;
+            }
+            function checkBoundaries(){
+                var left= 0,
+                        right=canvas.width,
+                        top= 0,
+                        bottom=canvas.height;
+                vy+=gravity;
+                vx*=friction;
+                vy*=friction;
+                ball.x+=vx;
+                ball.y+=vy;
+
+                if(ball.x+ball.radius>right){
+                    ball.x=right-ball.radius;
+                    vx*=bounce;
+                }else if(ball.x-ball.radius<left){
+                    ball.x=left+ball.radius;
+                    vx*=bounce;
+                }
+                if(ball.y+ball.radius>bottom){
+                    ball.y=bottom-ball.radius;
+                    vy*=bounce;
+                }else if(ball.y-ball.radius<top){
+                    ball.y=top+ball.radius;
+                    vy*=bounce;
+                }
+            }
+
+            (function drawFrame(){
+                window.requestAnimationFrame(drawFrame,canvas);
+                context.clearRect(0,0,canvas.width,canvas.height);
+                if(isMouseDown){
+                    trackVelocity();
+                }else{
+                    checkBoundaries();
+                }
+                ball.draw(context);
+            }())
+        }
+    </script>
+</head>
+<body>
+<canvas width="600" height="600" id="mycanvas" style="border:2px solid #000"></canvas>
+</body>
+</html>

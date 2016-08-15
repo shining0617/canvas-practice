@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script>
+        window.onload=function(){
+            var can=document.getElementById("mycanvas");
+            var cxt=can.getContext("2d");
+            function Ball(radius,color){
+                this.x=0;
+                this.y=0;
+                this.vx=0;
+                this.vy=0;
+                if(radius===undefined){radius=20}
+                this.radius=radius;
+                if(color===undefined){color="#ff0000"}
+                this.color=color;
+            }
+            Ball.prototype.draw=function(context){
+                context.save();
+                context.translate(this.x,this.y);
+                context.lineWidth=2;
+                context.strokeStyle="#000";
+                context.fillStyle=this.color;
+                context.beginPath();
+                context.arc(0,0,this.radius,0,Math.PI*2,true);
+                context.closePath();
+                context.fill();
+                context.stroke();
+                context.restore();
+            }
+            var ball=new Ball();
+            var vr=0.05,angle= 0,radius=150,centerX=can.width/ 2,centerY=can.height/2;
+            (function drawFrame() {
+                window.requestAnimationFrame(drawFrame, can);
+                cxt.clearRect(0,0,can.width,can.height);
+                ball.x=centerX+radius*Math.cos(angle);
+                ball.y=centerY+radius*Math.sin(angle);
+                angle+=vr;
+                ball.draw(cxt);
+            }())
+        }
+    </script>
+</head>
+<body>
+<canvas id="mycanvas" width="600" height="600" style="border: 2px solid #000"></canvas>
+</body>
+</html>

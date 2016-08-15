@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script>
+        window.onload=function(){
+            var canvas=document.getElementById("mycanvas");
+            var context=canvas.getContext("2d");
+            function ball(radius,color){
+                this.x=0;
+                this.y=0;
+                if(radius===undefined){ radius=40};
+                this.radius=radius;
+                if(color===undefined){color="#ff0000"};
+                this.color=color;
+            }
+            ball.prototype.draw=function(context){
+                context.save();
+                context.translate(this.x,this.y);
+                context.fillStyle=this.color;
+                context.lineWidth=2;
+                context.beginPath();
+                context.arc(0,0,this.radius,0,Math.PI*2,true);
+                context.closePath();
+                context.fill();
+                context.stroke();
+                context.restore();
+            }
+            var ball=new ball(),
+                targetX=canvas.width/2,
+                targetY=canvas.height/2,
+                easing=0.05,
+                vx= 0,
+                vy=0;
+            (function drawFrame(){
+                window.requestAnimationFrame(drawFrame,canvas);
+                context.clearRect(0,0,canvas.width,canvas.height);
+//                var ax=(targetX-ball.x)*easing;
+//                var ay=(targetY-ball.y)*easing;
+//                vx+=ax;
+//                vy+=ay;
+                vx=(targetX-ball.x)*easing;
+                vy=(targetY-ball.y)*easing;
+                ball.x+=vx;
+                ball.y+=vy;
+                ball.draw(context);
+            }())
+
+        }
+    </script>
+</head>
+<body>
+    <canvas width="600" height="600" id="mycanvas" style="border:2px solid #000"></canvas>
+</body>
+</html>

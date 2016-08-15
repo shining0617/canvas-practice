@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script>
+        window.onload=function(){
+            var utils={};/*一个空的对象*/
+            utils.CaptrueMouse=function(element){
+                   var mouse={x:0,y:0};
+                    element.addEventListener('mousemove',function(event){
+                        var x,y;
+                        if(event.pageX||event.pageY){
+                            x=event.pageX;
+                            y=event.pageY;
+                        }else{
+                            x= event.clientX+document.body.scrollLeft+document.documentElement.scrollLeft;
+                            y= event.clientY+document.body.scrollTop+document.documentElement.scrollTop;
+                        }
+                        x-=element.offsetLeft;
+                        y-=element.offsetTop;
+                        mouse.x=x;
+                        mouse.y=y;
+                    },false);
+                    return mouse;
+            };
+
+            utils.ContainPoint=function(rect,x,y){
+                return !(x<rect.x||x>rect.x+rect.width||y<rect.y||y>rect.y+rect.height);
+            };
+
+            function ball(radius,color){
+                this.x=0;
+                this.y=0;
+                if(radius===undefined){ radius=40};
+                this.radius=radius;
+                if(color===undefined){color="#ff0000"};
+                this.color=color;
+            };
+
+            ball.prototype.draw=function(context){
+                context.save();
+                context.translate(this.x,this.y);
+                context.fillStyle=this.color;
+                context.lineWidth=2;
+                context.beginPath();
+                context.arc(0,0,this.radius,0,Math.PI*2,true);
+                context.closePath();
+                context.fill();
+                context.stroke();
+                context.restore();
+            };
+            ball.prototype.getBounds=function(){
+                return {
+                    x:this.x-this.radius,
+                    y:this.y-this.radius,
+                    width:this.radius*2,
+                    height:this.radius*2
+                }
+            };
+
+            var canvas=document.getElementById("mycanvas");
+            var context=canvas.getContext("2d");
+            var ball=new ball();
+            var targetX=canvas.width/2;
+            var targetY=canvas.height/2;
+            var easing=0.05;
+            var isMouseDown=false;
+
+            var mouse=utils.CaptrueMouse(canvas);
+
+            canvas.addEventListener('mousedown',function(){
+                if(utils.ContainPoint(ball.getBounds(),mouse.x,mouse.y)){
+                    isMouseDown=true;
+                    canvas.addEventListener('mousemove',onMousemove,false);
+                    canvas.addEventListener('mouseup',onMouseup,false);
+                }
+            },false)
+            function onMousemove(){
+                ball.x=mouse.x;
+                ball.y=mouse.y;
+            }
+            function onMouseup(){
+                isMouseDown=false;
+                canvas.removeEventListener('mousemove',onMousemove,false);
+                canvas.removeEventListener('mouseup',onMouseup,false);
+            }
+            (function drawFrame(){
+                window.requestAnimationFrame(drawFrame,canvas);
+                context.clearRect(0,0,canvas.width,canvas.height);
+                if(!isMouseDown){
+                    var vx=(targetX-ball.x)*easing;
+                    var vy=(targetY-ball.y)*easing;
+                    ball.x+=vx;
+                    ball.y+=vy;
+                }
+                ball.draw(context);
+            }())
+        }
+    </script>
+</head>
+<body>
+<canvas width="600" height="600" id="mycanvas" style="border:2px solid #000"></canvas>
+</body>
+</html>

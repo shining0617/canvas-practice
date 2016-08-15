@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script>
+        window.onload=function(){
+            var can = document.getElementById("mycanvas");
+            var cxt = can.getContext("2d");
+            function Line(x1,y1,x2,y2){
+                this.x=0;
+                this.y=0;
+                this.x1=(x1===undefined)?0:x1;
+                this.y1=(y1===undefined)?0:y1;
+                this.x2=(x2===undefined)?0:x2;
+                this.y2=(y2===undefined)?0:y2;
+                this.rotation=0;
+                this.lineWidth=2;
+            }
+            Line.prototype.draw=function(cxt){
+                cxt.save();
+                cxt.lineWidth=this.lineWidth;
+                cxt.rotate(this.rotation);
+                cxt.translate(this.x,this.y);
+                cxt.moveTo(this.x1,this.y1);
+                cxt.lineTo(this.x2,this.y2);
+                cxt.stroke();
+                cxt.restore();
+            }
+            Line.prototype.getBounds=function(){
+                if(this.rotation=0){
+                    var minX=Math.min(this.x1,this.x2);
+                    var minY=Math.min(this.y1,this.y2);
+                    var maxX=Math.max(this.x1,this.x2);
+                    var maxY=Math.max(this.y1,this.y2);
+                    return{
+                        x:this.x+minX,
+                        y:this.y+minY,
+                        width:maxX-minX,
+                        height:maxY-minY
+                    }
+                }else{
+
+                }
+            }
+            var line1=new Line(100,100,300,100);
+            line1.x=50;
+            line1.y=100;
+            line1.rotation=10*Math.PI/180;/*坐标系也跟着旋转*/
+            line1.draw(cxt);
+        }
+    </script>
+</head>
+<body>
+<canvas id="mycanvas" width="600" height="600" style="border: 2px solid #000;margin:auto"></canvas>
+</body>
+</html>

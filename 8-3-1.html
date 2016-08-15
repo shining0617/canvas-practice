@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script>
+        window.onload=function(){
+            var utils={};
+            utils.CaptrueMouse=function(element){
+                var mouse={x:0,y:0};
+                element.addEventListener('mousemove',function(e){
+                    var x,y;
+                    if(e.pageX|| e.pageY){
+                        x= e.pageX;
+                        y= e.pageY;
+                    }else{
+                        x= e.clientX+document.body.scrollLeft+document.documentElement.scrollLeft;
+                        y=e.clientY+document.body.scrollTop+document.documentElement.scrollTop;
+                    }
+                    x-=element.offsetLeft;
+                    y-=element.offsetTop;
+                    mouse.x=x;
+                    mouse.y=y;
+                },false);
+                return mouse;
+            }
+            function Ball(radius,color){
+                this.x=0;
+                this.y=0;
+                if(radius===undefined){radius=40}
+                this.radius=radius;
+                if(color===undefined){color="#ff0000"}
+                this.color=color;
+            }
+            Ball.prototype.draw=function(context){
+                context.save();
+                context.translate(this.x,this.y);
+                context.fillStyle=this.color;
+                context.lineWidth=2;
+                context.beginPath();
+                context.arc(0,0,this.radius,0,Math.PI*2,true);
+                context.closePath();
+                context.fill();
+                context.stroke();
+                context.restore();
+            }
+            var canvas=document.getElementById("mycanvas");
+            var context=canvas.getContext("2d");
+            var ball=new Ball();
+            var mouse=utils.CaptrueMouse(canvas);
+            var targetX=canvas.width/2;
+            var targetY=canvas.height/2;
+            var spring=0.03;
+            var gravity=2;
+            var vx= 0,vy=0;
+            var friction=0.95;
+            (function drawFrame(){
+                window.requestAnimationFrame(drawFrame,canvas);
+                context.clearRect(0,0,canvas.width,canvas.height);
+                var dx=mouse.x-ball.x,dy=mouse.y-ball.y;
+                var ax=dx*spring,ay=dy*spring;
+                vx+=ax;
+                vx*=friction;
+                ball.x+=vx;
+                vy+=ay;
+                vy+=gravity;
+                vy*=friction;
+                ball.y+=vy;
+                context.beginPath();
+                context.moveTo(ball.x,ball.y);
+                context.lineTo(mouse.x,mouse.y);
+                context.stroke();
+                context.closePath();
+                ball.draw(context);
+            }())
+        }
+    </script>
+</head>
+<body>
+<canvas width="600" height="600" id="mycanvas" style="border:2px solid #000"></canvas>
+</body>
+</html>

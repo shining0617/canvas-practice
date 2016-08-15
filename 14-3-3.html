@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<style>
+*{margin:0;padding: 0}
+canvas{border: 2px solid #000;margin:auto;}
+</style>
+<script type="text/javascript" src="js/segement.js"></script>
+<script type="text/javascript" src="js/balls.js"></script>
+<script type="text/javascript" src="js/utils.js"></script> 
+<script type="text/javascript" src="js/slider.js"></script> 
+<script type="text/javascript">
+window.onload=function(){
+		var can=document.getElementById("mycanvas");
+		var ctx=can.getContext("2d");  
+		var mouse=utils.CaptureMouse(can);  
+  		var segs=[];
+  		var segNum=5;
+  		var target;
+  		var ball=new Ball(20);
+  		var gravity=0.5;
+  		var bounce=-0.9;
+
+  		while(segNum--){
+  			segs.push(new Segement(50,10));
+  		}
+ 		
+ 		segs[segs.length-1].color="#ff0000";
+ 		segs[segs.length-1].x=can.width/2;
+ 		segs[segs.length-1].y=can.height/2;
+ 
+
+		function draw(seg){
+		 	seg.draw(ctx);
+		} 
+		 
+
+		function position(segA,segB){
+			segA.x=segB.getPin().x;
+			segA.y=segB.getPin().y;
+		}
+
+		function reach(seg,xpos,ypos){
+			
+		    var dx=xpos-seg.x;
+			var dy=ypos-seg.y;
+			seg.rotation=Math.atan2(dy,dx);
+
+			var w=seg.getPin().x-seg.x;
+			var h=seg.getPin().y-seg.y;
+
+		    return{
+				x:xpos-w,
+				y:ypos-h
+			}  	    
+		}
+
+		function move(seg,i){			
+			if(i!=0){
+				target=reach(seg,target.x,target.y); 
+				position(segs[i-1],seg);
+			}		
+		}
+
+		function moveBall(){
+			ball.vy+=gravity;
+			ball.vx+=0.2;
+			ball.x+=ball.vx;
+			ball.y+=ball.vy;
+			if(ball.x+ball.radius>can.width){
+				ball.x=can.width-ball.radius;
+				ball.vx*=bounce;
+			}else if(ball.x-ball.radius<0){
+				ball.x=ball.radius;
+				ball.vx*=bounce;
+			}
+			if(ball.y+ball.radius>can.height){
+				ball.y=can.height-ball.radius;
+				ball.vy*=bounce;
+			}else if(ball.y-ball.radius<0){
+				ball.y=ball.radius;
+				ball.vy*=bounce;
+			}
+		}
+
+		function checkHit(){
+			var seg=segs[0];
+			var dx=seg.getPin().x-ball.x;
+			var dy=seg.getPin().y-ball.y;
+			var dist=Math.sqrt(dx*dx+dy*dy);
+			if(dist<ball.radius){
+				ball.vx+=Math.random()*2-1;
+				ball.vy-=1;
+			}
+		}
+		 
+		(function drawFrame(){
+		  window.requestAnimationFrame(drawFrame,can);
+		  ctx.clearRect(0,0,can.width,can.height); 
+		  moveBall();  
+		  target=reach(segs[0],ball.x,ball.y); 
+		  checkHit();
+		  segs.forEach(move);
+		  segs.forEach(draw);
+		  ball.draw(ctx);
+		}()) 	
+	}
+</script>
+</head>
+<body>
+<canvas id="mycanvas" width="800" height="500" ></canvas>
+</body>
+</html>

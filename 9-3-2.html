@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script>
+        window.onload=function(){
+            function Ball(radius,color){
+                this.x=0;
+                this.y=0;
+                this.vx=0;
+                this.vy=0;
+                if(radius===undefined){radius=20}
+                this.radius=radius;
+                if(color===undefined){color="#ff0000"}
+                this.color=color;
+            }
+            Ball.prototype.draw=function(context){
+                context.save();
+                context.translate(this.x,this.y);
+                context.lineWidth=2;
+                context.strokeStyle="#000";
+                context.fillStyle=this.color;
+                context.beginPath();
+                context.arc(0,0,this.radius,0,Math.PI*2,true);
+                context.closePath();
+                context.fill();
+                context.stroke();
+                context.restore();
+            };
+            var can=document.getElementById("mycanvas");
+            var cxt=can.getContext("2d");
+            var centerball=new Ball(50,"#ffff00");
+            centerball.x=can.width/2;
+            centerball.y=can.height/2;
+            var balls=[];
+            var numballs=40;
+            var bounce=-1;
+            var spring=0.05;
+            for(var ball, i=0;i<numballs;i++){
+                ball=new Ball(Math.random()*20+5);
+                ball.x=Math.random()*can.width;
+                ball.y=Math.random()*can.height;
+                ball.vx=Math.random()*6-3;
+                ball.vy=Math.random()*6-3;
+                balls.push(ball);
+            }
+
+            function move(ball){
+                ball.x+=ball.vx;
+                ball.y+=ball.vy;
+
+                if(ball.x+ball.radius>can.width){
+                    ball.x=can.width-ball.radius;
+                    ball.vx*=bounce;
+                }else if(ball.x-ball.radius<0){
+                    ball.x=ball.radius;
+                    ball.vx*=bounce;
+                }
+                if(ball.y+ball.radius>can.height){
+                    ball.y=can.height-ball.radius;
+                    ball.vy*=bounce;
+                }else if(ball.y-ball.radius<0){
+                    ball.y=ball.radius;
+                    ball.vy*=bounce;
+                }
+
+            }
+            function checkcollision(ball){
+                var targetx,targety,dist,min_dist,angle,dx,dy;
+
+                dx=ball.x-centerball.x;
+                dy=ball.y-centerball.y;
+                min_dist=centerball.radius+ball.radius;
+                dist=Math.sqrt(dx*dx+dy*dy);
+
+                if(dist<min_dist){
+                    angle=Math.atan2(dy,dx);
+                    targetx=centerball.x+min_dist*Math.cos(angle);
+                    targety=centerball.y+min_dist*Math.sin(angle);
+                    ball.vx+=(targetx-ball.x)*spring;
+                    ball.vy+=(targety-ball.y)*spring;
+                }
+            }
+            function drawball(ball){
+                ball.draw(cxt);
+            }
+            (function drawFrame(){
+                window.requestAnimationFrame(drawFrame,can);
+                cxt.clearRect(0,0,can.width,can.height);
+                balls.forEach(move);
+                balls.forEach(checkcollision);
+                balls.forEach(drawball);
+                centerball.draw(cxt);
+            }())
+        }
+    </script>
+</head>
+<body>
+<canvas id="mycanvas" width="600" height="600" style="border: 2px solid #000"></canvas>
+</body>
+</html>

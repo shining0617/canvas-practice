@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<style>
+	*{margin:0;padding: 0}
+	</style>
+	<script type="text/javascript">
+		window.onload=function(){
+			function Ball(radius, color) {
+                this.x = 0;
+                this.y = 0;
+                this.vx = 0;
+                this.vy = 0;
+                if (radius === undefined) {
+                    radius = 20
+                }
+                this.radius = radius;
+                if (color === undefined) {
+                    color = "#ff0000"
+                }
+                this.color = color;
+                this.mass=1;
+            }
+
+            Ball.prototype.draw = function (context) {
+                context.save();
+                context.translate(this.x, this.y);
+                context.lineWidth = 2;
+                context.strokeStyle = "#000";
+                context.fillStyle = this.color;
+                context.beginPath();
+                context.arc(0, 0, this.radius, 0, Math.PI * 2, true);
+                context.closePath();
+                context.fill();
+                context.stroke();
+                context.restore();
+            }
+            var can = document.getElementById("mycanvas");
+            var cxt = can.getContext("2d");
+            var ball0=new Ball(40,'#000');
+            var ball1=new Ball(60,'#000');
+
+            ball0.mass=1;
+            ball0.x=can.width-200;
+            ball0.y=can.height-200; 
+            ball0.vx=Math.random()*10-5;
+            ball0.vy=Math.random()*10-5;
+
+            ball1.mass=2;
+            ball1.x=100;
+            ball1.y=100;
+            ball1.vx=Math.random()*10-5;
+            ball1.vy=Math.random()*10-5;
+
+            var bounce=-0.7;
+
+            function checkWalls(ball){
+                if(ball.x>can.width-ball.radius){
+                    ball.vx*=bounce;
+                    ball.x=can.width-ball.radius;
+                    ball.x+=ball.vx;
+                }else if(ball.x<ball.radius){
+                    ball.vx*=bounce;
+                    ball.x=ball.radius;
+                    ball.x+=ball.vx;
+                } 
+                if(ball.y>can.height-ball.radius){
+                    ball.vy*=bounce;
+                    ball.y=can.height-ball.radius;
+                    ball.y+=ball.vy;
+                }else if(ball.y<ball.radius){
+                    ball.vy*=bounce;
+                    ball.y=ball.radius;
+                    ball.y+=ball.vy;
+                } 
+            }
+
+            function checkCollision(ballA,ballB){
+                var dx=ballB.x-ballA.x;
+                var dy=ballB.y-ballA.y;
+                var angle=Math.atan2(dy,dx);
+                var dist=Math.sqrt(dx*dx+dy*dy);
+                var cos=Math.cos(angle);
+                var sin=Math.sin(angle);
+                if(dist<ballA.radius+ballB.radius){
+                    /*旋转后的相对位置*/
+                    var x0=0,y0=0;/*ballA的相对距离为0，得到旋转后的相对位置*/
+                    var x1=dx*cos+dy*sin;
+                    var y1=dy*cos-dx*sin;/*ballB的相对距离为dx,dy,通过旋转公式得到旋转后的相对位置*/
+
+                    /*旋转后的速度*/
+                    var vx0=ballA.vx*cos+ballA.vy*sin;
+                    var vy0=ballA.vy*cos-ballA.vx*sin;
+                    var vx1=ballB.vx*cos+ballB.vy*sin;
+                    var vy1=ballB.vy*cos-ballB.vx*sin;
+
+                    /*碰撞后的速度*/
+                    var vxTotal=vx0-vx1;
+                    vx0=(ballA.mass-ballB.mass)*vx0+2*ballB.mass*vx1/(ballA.mass+ballB.mass);
+                    vx1=vxTotal+vx0;
+
+                    /*碰撞后的相对位置*/
+                    x0+=vx0;
+                    x1+=vx1;
+
+                    /*旋转回原角度的相对位置*/
+                    var x0F=x0*cos-y0*sin;
+                    var y0F=y0*cos+x0*sin;
+                    var x1F=x1*cos-y1*sin;
+                    var y1F=y1*cos+x1*sin;
+
+                    /*旋转回原角度的位置*/
+                    ballA.x=ballA.x+x0F;
+                    ballA.y=ballA.y+y0F;
+                    ballB.x=ballA.x+x1F;
+                    ballB.y=ballA.y+y1F;
+
+                    /*旋转回原角度的速度*/
+                    ballA.vx=vx0*cos-vy0*sin;
+                    ballA.vy=vy0*cos+vx0*sin;
+                    ballB.vx=vx1*cos-vy1*sin;
+                    ballB.vy=vy1*cos+vx1*sin;
+                }
+                 
+            }
+
+            (function drawFrame(){
+            	window.requestAnimationFrame(drawFrame,can);
+            	cxt.clearRect(0,0,can.width,can.height); 
+
+            	ball0.x+=ball0.vx;
+            	ball1.x+=ball1.vx;
+                ball0.y+=ball0.vy;
+                ball1.y+=ball1.vy;
+            	
+        		checkCollision(ball0,ball1);
+
+                checkWalls(ball0);
+                checkWalls(ball1);
+
+            	ball0.draw(cxt);
+            	ball1.draw(cxt);
+
+            }()) 
+		}
+	</script>
+</head>
+<body>
+<canvas id="mycanvas" width="600" height="600" style="border: 2px solid #000;margin:auto">
+	
+</canvas>
+</body>
+</html>
